@@ -3,24 +3,23 @@
 #include <fstream>
 #include <numeric>
 #include <string>
+#include <ranges>
+#include <algorithm>
 
-int countFloor(const std::string &atext) {
-	int vResult = 0;
-	vResult = std::accumulate(atext.begin(), atext.end(), vResult, [](int sum, char x){return sum + (x == '(');});
-	vResult = std::accumulate(atext.begin(), atext.end(), vResult, [](int sum, char x){return sum - (x == ')');});
-	return vResult;
+int countFloor(std::string_view atext) {
+	return std::ranges::count(atext, '(') - std::ranges::count(atext,')');
 }
 
-int getBasementPosition(const std::string &atext) {
+std::optional<std::size_t> getBasementPosition(std::string_view atext) {
 	int vResult = 0;
-	for (std::size_t i = 0; i < atext.size(); ++i) {
-		vResult += (atext.at(i) == '(') ? 1 : -1;
-		if (vResult < 0) {
-			return i + 1;
-		}
-
+	std::size_t pos = 1;
+	for (auto c : atext) {
+		vResult += (c == '(') ? 1 : -1;
+		if (vResult < 0)
+			return pos;
+		++pos;
 	}
-	return atext.size();
+	return std::nullopt;
 }
 
 int main(int argc, const char **argv) {
@@ -37,11 +36,17 @@ int main(int argc, const char **argv) {
 	const std::string testCaseSecondPart2 = "(((()()))))";
 	assert(getBasementPosition(testCaseSecondPart1) == 1);
 	assert(getBasementPosition(testCaseSecondPart2) == 11);
-	
+
 	std::fstream vFile(argv[1]);
 	std::string line;
 	getline(vFile, line);
-	std::cout << countFloor(line) << ", " << getBasementPosition(line) << std::endl;
+	auto part2ans = getBasementPosition(line);
 
-return 0;
+	std::cout << "part 1: " << countFloor(line) <<std::endl;
+	std::cout << "part 2: ";
+	if (part2ans)
+		std::cout << *part2ans << std::endl;
+	else
+		std::cout << "not found" << std::endl;;
+	return 0;
 }

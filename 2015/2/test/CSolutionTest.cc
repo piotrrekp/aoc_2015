@@ -1,32 +1,21 @@
 #include <gtest/gtest.h>
 #include "../src/CSolution.h"
 
-class CSolutionTester : public CSolution, public testing::Test {};
-
-TEST_F(CSolutionTester, getNeededSurface) {
-	ASSERT_EQ(getNeededSurface(1,1,1), 7);
-}
-
-TEST_F(CSolutionTester, getNeededSurface2) {
-	ASSERT_EQ(getNeededSurface(2,3,4), 58);
-}
-
-TEST_F(CSolutionTester, getNeededSurface3) {
-	ASSERT_EQ(getNeededSurface(1,1,10), 43);
-}
-
-TEST_F(CSolutionTester, getTotalNeededSurface) {
+TEST(tester, getTotalNeededSurface) {
 	std::vector<std::string> vList = {"1x1x1"};
-	ASSERT_EQ(getTotalNeededSurface(vList), 7);
+	CSolution sol(vList);
+	ASSERT_EQ(sol.getTotalNeededSurface(), 7);
 }
 
-TEST_F(CSolutionTester, getTotalNeededSurface_multipleLine) {
+TEST(tester, getTotalNeededSurface_multipleLine) {
 	std::vector<std::string> vList = {"1x1x1", "2x3x4", "1x1x10"};
-	ASSERT_EQ(getTotalNeededSurface(vList), 108);
+	CSolution sol(vList);
+	ASSERT_EQ(sol.getTotalNeededSurface(), 108);
 }
 
-TEST_F(CSolutionTester, getTotalRibbon_1) {
+TEST(tester, getTotalRibbon_1) {
 	std::vector<std::string> vList = {"2x3x4"};
-	ASSERT_EQ(getTotalRibbonNeeded(vList), 34);
+	CSolution sol(vList);
+	ASSERT_EQ(sol.getTotalRibbonNeeded(), 34);
 
 }

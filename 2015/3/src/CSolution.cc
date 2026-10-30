@@ -1,89 +1,49 @@
-#include <iostream>
 #include "CSolution.h"
 
+#include <array>
+#include <iostream>
+#include <set>
 
-int CSolution::getVisitedHouses(const std::string &list) {
-	std::map<std::pair<int,int>, int> visitedHouses;
-	int x = 0;
-	int y = 0;
-	visitedHouses[std::make_pair(0,0)] = 1;
+struct Position {
+	int x{};
+	int y{};
+	auto operator<=>(const Position &) const = default;
+
+};
+
+void move(Position& pos, char c) {
+	auto &[x, y] = pos;
+	switch (c) {
+		case 'v': --y; break;
+		case '^': ++y; break;
+		case '>': ++x; break;
+		case '<': --x; break;
+		default:
+			std::cerr << "unhandled char: " << c <<  std::endl;
+			break;
+	}
+}
+
+int CSolution::getVisitedHouses(std::string_view list) {
+	std::set<Position> visitedHouses;
+	Position pos{0,0};
+	visitedHouses.insert(pos);
 
 	for (const auto &c : list) {
-		switch (c) {
-			case 'v':
-				--y;
-				break;
-			case '^':
-				++y;
-				break;
-			case '>':
-				++x;
-				break;
-			case '<':
-				--x;
-				break;
-			default:
-				std::cerr << "unhandled char: " << c << std::endl;
-				break;
-		}
-		visitedHouses[std::make_pair(x,y)]++;
+		move(pos, c);
+		visitedHouses.insert(pos);
 	}
-
 	return visitedHouses.size();
 }
 
-int CSolution::getVisitedHouses_v2(const std::string &list) {
-	std::map<std::pair<int,int>, int> visitedHouses;
-	int x = 0;
-	int x1 = 0;
-	int y = 0;
-	int y1 = 0;
+int CSolution::getVisitedHouses_v2(std::string_view list) {
+	std::set<Position> visitedHouses;
+	std::array<Position, 2> positions{{{0,0}, {0,0}}};
+	visitedHouses.insert({0,0});
 
-	visitedHouses[std::make_pair(0,0)] = 2;
-
-	for (std::size_t i = 0; i < list.size(); i = i + 2) {
-		const char c = list.at(i);
-		switch (c) {
-			case 'v':
-				--y;
-				break;
-			case '^':
-				++y;
-				break;
-			case '>':
-				++x;
-				break;
-			case '<':
-				--x;
-				break;
-			default:
-				std::cerr << "unhandled char: " << c << std::endl;
-				break;
-		}
-		visitedHouses[std::make_pair(x,y)]++;
-
-		if (i + 1 >= list.size()) break;
-		const char c1 = list.at(i+1);
-
-		switch (c1) {
-			case 'v':
-				--y1;
-				break;
-			case '^':
-				++y1;
-				break;
-			case '>':
-				++x1;
-				break;
-			case '<':
-				--x1;
-				break;
-			default:
-				std::cerr << "unhandled char: " << c << std::endl;
-				break;
-		}
-		visitedHouses[std::make_pair(x1,y1)]++;
+	for (std::size_t i = 0; i < list.size(); ++i) {
+		move(positions[i%2], list[i]);
+		visitedHouses.insert(positions[i % 2]);
 	}
-
 	return visitedHouses.size();
 }

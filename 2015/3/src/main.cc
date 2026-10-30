@@ -2,19 +2,20 @@
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
-#include <vector>
 
 int main(int argc, char **argv) {
-	if (argc < 1) {
+	if (argc < 2) {
 		std::cerr << "Input path to file!" << std::endl;
 		return -1;
 	}
 	std::fstream file(argv[1]);
-	std::vector<std::string> input;
 	std::string line;
-	while (getline(file, line)) {
-		input.push_back(line);
+
+	if (!file.is_open()) {
+		std::cerr << "Problem z otwarciem pliku" << std::endl;
+		return -1;
 	}
+	getline(file, line);
 	file.close();
 
 	CSolution solution;

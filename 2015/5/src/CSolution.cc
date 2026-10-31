@@ -1,76 +1,51 @@
 #include "CSolution.h"
 #include <algorithm>
-#include <iostream>
-#include <map>
-#include <ostream>
-#include <string>
+#include <array>
 
-void CSolution::setData(const std::vector<std::string> &data) {
-	mData = data;
+namespace aoc2015::day5 {
+namespace {
+
+constexpr std::array<std::string_view, 4> excluded{"ab", "cd", "pq", "xy"};
+
+bool hasAtLeast3vowels(std::string_view text) {
+	return std::ranges::count_if(text, [](char c){
+		return std::string_view{"eaiou"}.find(c) != std::string_view::npos;
+	}) >= 3;
 }
 
-int CSolution::getNiceStringCount() {
-	auto has3vowels = [this](const std::string &text){
-		return this->hasAtLeast3vowels(text) &&
-			this->hasAtLeastOneLetterTwiceInRow(text) &&
-			this->notContainExcludedStrings(text);};
-	return std::count_if(mData.begin(), mData.end(), has3vowels);
+bool hasAtLeastOneLetterTwiceInRow(std::string_view text) {
+	return std::ranges::adjacent_find(text) != text.end();
 }
 
-bool CSolution::hasAtLeast3vowels(const std::string &text) {
-	int count = 0;
-	for (const auto c : VOWELS) {
-		count += std::count(text.begin(), text.end(), c);
-		if (count >= 3) return true;
-	}
-	return false;
+bool notContainExcludedStrings(std::string_view text) {
+	return std::ranges::none_of(excluded, [text](auto s){
+		return text.find(s) != std::string_view::npos;
+	});
 }
 
-bool CSolution::hasAtLeastOneLetterTwiceInRow(const std::string &text) {
-	return std::adjacent_find(text.begin(), text.end()) != text.end();
-}
-
-
-bool CSolution::notContainExcludedStrings(const std::string &text) {
-	return std::none_of(
-		EXCLUDED.begin(), EXCLUDED.end(),
-		[text](std::string str){return std::string::npos != text.find(str);});
-}
-
-int CSolution::getNiceStringCountPartTwo() {
-	auto requirements = [this](const std::string &text){
-		return hasPairWithOneLetterBetween(text) &&
-			hasAtLeastTwicePair(text);
-	};
-
-	return std::count_if(mData.begin(), mData.end(), requirements);
-}
-
-bool CSolution::hasPairWithOneLetterBetween(const std::string &text) {
-	for (std::size_t i = 0; i < text.size() - 2; ++i) {
+bool hasPairWithOneLetterBetween(std::string_view text) {
+	for (std::size_t i = 0; i + 2 < text.size(); ++i) {
 		if (text.at(i) == text.at(i + 2)) return true;
 	}
-
 	return false;
 }
 
-bool CSolution::hasAtLeastTwicePair(const std::string &text) {
-	std::string sub;
-	std::string lastSubstr = "";
-	std::map<std::string, int> founded;
-	for(std::size_t i = 0; i < (text.size() - 1); ++i) {
-		sub = text.substr(i, 2);
-		if (sub == lastSubstr) {
-			continue;
-		}
-		if (founded.count(sub)) {
+bool hasRepeatedPair(std::string_view text) {
+	for(std::size_t i = 0; i + 2 < text.size(); ++i) {
+		if (text.find(text.substr(i, 2), i + 2) != std::string_view::npos)
 			return true;
-		} else {
-			founded[sub] = 1;
-			lastSubstr = sub;
-		}
-
 	}
-
 	return false;
 }
+} //namespace
+
+bool reqPartOne(std::string_view text) {
+	return hasAtLeast3vowels(text) &&
+		hasAtLeastOneLetterTwiceInRow(text) &&
+		notContainExcludedStrings(text);
+}
+
+bool reqPartTwo(std::string_view text) {
+	return hasPairWithOneLetterBetween(text) && hasRepeatedPair(text);
+}
+} // namespace aoc2015::day5

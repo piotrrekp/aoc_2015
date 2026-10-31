@@ -1,28 +1,8 @@
-#ifndef _CSOLUTION_H_
-#define _CSOLUTION_H_
+#pragma ONCE
 
-#include <list>
-#include <string>
-#include <vector>
+#include <string_view>
 
-class CSolution {
-	const std::string VOWELS = "aeiou";
-	const std::list<std::string> EXCLUDED{"ab", "cd", "pq", "xy"};
-public:
-	void setData(const std::vector<std::string> &data);
-	int getNiceStringCount();
-	int getNiceStringCountPartTwo();
-
-	bool hasPairWithOneLetterBetween(const std::string &text);
-	bool hasAtLeastTwicePair(const std::string &text);
-
-private:
-	bool hasAtLeastOneLetterTwiceInRow(const std::string &text);
-	bool hasAtLeast3vowels(const std::string &text);
-	bool notContainExcludedStrings(const std::string &text);
-
-	std::vector<std::string> mData;
-
-};
-
-#endif // _CSOLUTION_H_
+namespace aoc2015::day5 {
+	bool reqPartTwo(std::string_view text);
+	bool reqPartOne(std::string_view text);
+}

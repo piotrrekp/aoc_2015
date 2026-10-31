@@ -1,76 +1,68 @@
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
-#include <numeric>
+#include <ostream>
+#include <string_view>
 #include <vector>
-
 #include "../src/CSolution.h"
 
-class CTestData {
-public:
-	CTestData(const std::vector<std::string> &path, const int expected) :
-	mInput(path), mExpected(expected) {};
-	std::vector<std::string> getInput() const { return mInput; }
-	int getExpected() const {return mExpected; }
-	friend std::ostream& operator<<(std::ostream &os, const CTestData &obj) {
-		auto input = obj.getInput();
-		auto fold = [](std::string a, std::string b) {
-			return a + ", \"" + b; };
-		std::string result = std::accumulate(input.begin(), input.end(), std::string(), fold);
-
-		os << "path \"" << result << "\" should result with expected = " << obj.getExpected();
-		return os;
+struct TestCase {
+	std::string_view input;
+	bool expected;
+	friend std::ostream& operator<<(std::ostream& out, const TestCase& t) {
+		return out << "input=\"" << t.input << "\",expected="
+			<< (t.expected ? "true" : "false");
 	}
-private:
-	const std::vector<std::string> mInput;
-	const int mExpected;
+};
+
+class PartOne : public testing::TestWithParam<TestCase> {};
+
+std::vector<TestCase> testingData{
+	{"", false},
+	{"axxx", false},
+	{"axra", false},
+	{"axxaxa", true},
+	{"axexxa", true},
+	{"axeqxa", false},
+	{"ggaaa", true},
+	{"cdaxxaxa", false},
+	{"abaxxaxa", false},
+	{"xyaxxaxa", false},
+	{"pqaxxaxa", false},
+	{"ugknbfddgicrmopn", true},
+	{"jchzalrnumimnmhp", false},
+	{"haegwjzuvuyypxyu", false},
+	{"dvszwmarrgswjxmb", false}
 
 };
 
-class CSolutionTester : public CSolution, public testing::TestWithParam<CTestData> {};
+INSTANTIATE_TEST_CASE_P(, PartOne, testing::ValuesIn(testingData));
 
-std::vector<CTestData> testingData{
-	CTestData({""}, 0),
-	CTestData({"axxx"}, 0),
-	CTestData({"axra"}, 0),
-	CTestData({"axxaxa"}, 1),
-	CTestData({"axexxa"}, 1),
-	CTestData({"axeqxa"}, 0),
-	CTestData({"axeqxa", "ggaaa"}, 1),
-	CTestData({"cdaxxaxa"}, 0),
-	CTestData({"abaxxaxa"}, 0),
-	CTestData({"xyaxxaxa"}, 0),
-	CTestData({"pqaxxaxa"}, 0),
-	CTestData({"ugknbfddgicrmopn"}, 1),
-	CTestData({"jchzalrnumimnmhp"}, 0),
-	CTestData({"haegwjzuvuyypxyu"}, 0),
-	CTestData({"dvszwmarrgswjxmb"}, 0),
+TEST_P(PartOne, check) {
 
-};
-
-INSTANTIATE_TEST_CASE_P(, CSolutionTester, testing::ValuesIn(testingData));
-
-TEST_P(CSolutionTester, check) {
-	setData(GetParam().getInput());
-	ASSERT_EQ(getNiceStringCount(), GetParam().getExpected());
+	ASSERT_EQ(aoc2015::day5::reqPartOne(GetParam().input), GetParam().expected);
 }
 
 
-class CSolutionTesterPartTwo : public CSolution, public testing::TestWithParam<CTestData> {};
+class PartTwo :  public testing::TestWithParam<TestCase> {};
 
-std::vector<CTestData> testingDataPartTwo{
-	CTestData({"ieodomkazucvgmuy"}, 0),
-	CTestData({"uurcxstgmygtbstg"}, 0),
-	CTestData({"aba"}, 0),
-	CTestData({"aaa"}, 0),
-	CTestData({"xxyxx"}, 1),
-	CTestData({"qjhvhtzxzqqjkmpb"}, 1),
+std::vector<TestCase> testingDataPartTwo{
+	{"ieodomkazucvgmuy", false},
+	{"uurcxstgmygtbstg", false},
+	{"aba", false},
+	{"aaa", false},
+	{"xxyxx", true},
+	{"qjhvhtzxzqqjkmpb", true},
+	{"", false},
+	{"a", false},
+	{"aa", false},
+	{"aaaa", true},
+	{"xyxy", true},
+	{"aabcdefgaa", false},
 
 };
 
-INSTANTIATE_TEST_CASE_P(, CSolutionTesterPartTwo, testing::ValuesIn(testingDataPartTwo));
+INSTANTIATE_TEST_CASE_P(, PartTwo, testing::ValuesIn(testingDataPartTwo));
 
-TEST_P(CSolutionTesterPartTwo, check) {
-	setData(GetParam().getInput());
-	ASSERT_EQ(getNiceStringCountPartTwo(), GetParam().getExpected());
+TEST_P(PartTwo, check) {
+	ASSERT_EQ(aoc2015::day5::reqPartTwo(GetParam().input), GetParam().expected);
 }
 

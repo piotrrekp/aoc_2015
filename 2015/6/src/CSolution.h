@@ -2,38 +2,59 @@
 #define _CSOLUTION_H_
 
 #include <array>
-#include <bitset>
-#include <string>
-#include "CPoint.h"
-#include "CCommand.h"
-#include "CCommandParser.h"
+#include <functional>
+#include <ostream>
+#include <string_view>
+#include <vector>
 
 
-const int LIGHTS_SIZE = 1000;
+namespace aoc2015::day6 {
+	enum class ECommand {unknown, turnOn, turnOff, toggle};
+	enum class ERule{partOne, partTwo};
+	struct Point {
+		int x{};
+		int y{};
+		bool operator<=>(const aoc2015::day6::Point &) const = default;
+		friend std::ostream &operator<<(std::ostream &os,const aoc2015::day6::Point &point) {
+			os << "Point(" << point.x << ", " << point.y << ")";
+		return os;
+		};
+	};
+	struct Command {
+		ECommand command{};
+		Point start{};
+		Point end{};
+	};
 
-class CLights {
-public:
-	void execute(const CCommand &_command);
-	void execute2(const CCommand &_command);
-	int getLit();
+	Command getCommand(std::string_view command);
 
-private:
-	template <typename Function>
-	void doIt(const CPoint &_start, const CPoint &_end, Function &f);
-	void toggle(const CPoint &_start, const CPoint &_end, const bool part2 = false);
-	void turnOn(const CPoint &_start, const CPoint &_end, const bool part2 = false);
-	void turnOff(const CPoint &_start, const CPoint &_end, const bool part2 = false);
-	std::array<std::array<int, LIGHTS_SIZE>, LIGHTS_SIZE> matrix{};
+	constexpr std::size_t size = 1000;
 
-};
+	class CLights {
+	public:
+		explicit CLights(const ERule &rule) : rule(rule) {};
+		void execute(const aoc2015::day6::Command &_command);
+		int getLit();
 
-class CSolution {
-public:
-	void command(const std::string &command, const bool _part2 = false);
-	int getTurnedLights();
-private:
-	CLights lights;
-};
+	private:
+		void doIt(const Point &_start, const Point &_end, std::function<void(int &)> f);
+		std::vector<std::array<int, size>> matrix = std::vector<std::array<int, size>>(size);
+		int totalBrightness{0};
+		ERule rule;
+	};
+
+	class CSolution {
+	public:
+		explicit CSolution(const ERule &rule) : lights(rule) {};
+		void command(std::string_view command);
+		int getTurnedLights();
+	private:
+		CLights lights;
+
+	};
+
+}
 
 #endif // _CSOLUTION_H_
+
 

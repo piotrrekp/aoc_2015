@@ -1,109 +1,88 @@
 #include "CSolution.h"
-#include "CCommand.h"
-#include "CPoint.h"
 #include <algorithm>
 #include <array>
+#include <charconv>
 #include <cmath>
-#include <cstdint>
-#include <iostream>
-#include <iterator>
 #include <numeric>
 
 
-void CLights::execute(const CCommand &_command) {
-	switch (_command.getCommand()) {
-		case ECommand::TURN_ON:
-			turnOn(_command.getStart(), _command.getEnd());
-			break;
-		case ECommand::TURN_OFF:
-			turnOff(_command.getStart(), _command.getEnd());
-			break;
-		case ECommand::TOGGLE:
-			toggle(_command.getStart(), _command.getEnd());
-			break;
-		default:
-			break;
+namespace aoc2015::day6 {
+namespace {
+	Point getPointFrom(std::string_view text) {
+		auto pos = text.find(',');
+		Point p;
+		std::from_chars(text.data(), text.data() + pos, p.x);
+		text.remove_prefix(pos + 1);
+		std::from_chars(text.data(), text.data() + text.size(), p.y);
+		return p;
 	}
-}
-
-void CLights::execute2(const CCommand &_command) {
-	switch (_command.getCommand()) {
-		case ECommand::TURN_ON:
-			turnOn(_command.getStart(), _command.getEnd(), true);
-			break;
-		case ECommand::TURN_OFF:
-			turnOff(_command.getStart(), _command.getEnd(), true);
-			break;
-		case ECommand::TOGGLE:
-			toggle(_command.getStart(), _command.getEnd(), true);
-			break;
-		default:
-			break;
-	}
-
-}
-
-void CLights::toggle(const CPoint &_start, const CPoint &_end, const bool _part2) {
-	auto part1 = [](int &x) {x = !x;};
-	auto part2 = [](int &x) {x += 2;};
-
-	if (_part2) {
-		doIt(_start, _end, part2);
-	} else {
-		doIt(_start, _end, part1);
-	}
-}
-
-void CLights::turnOff(const CPoint &_start, const CPoint &_end, const bool _part2) {
-	auto part1 = [](int &x) { x = 0;};
-	auto part2 = [](int &x) { x = std::max(0, x - 1); };
-
-	if (_part2) {
-		doIt(_start, _end, part2);
-	} else {
-		doIt(_start, _end, part1);
-	}
-}
-
-void CLights::turnOn(const CPoint &_start, const CPoint &_end, const bool _part2) {
-	auto part1 = [](int &x) { x = 1; };
-	auto part2 = [](int &x) { x += 1;};
-
-	if (_part2) {
-		doIt(_start, _end, part2);
-	} else {
-		doIt(_start, _end, part1);
-	}
-}
-
-template<typename Function>
-void CLights::doIt(const CPoint &_start, const CPoint &_end, Function &f) {
-	auto const startRow = matrix.begin() + _start.getY();
-	auto const endRow = matrix.begin() + _end.getY() + 1;
-
-	std::for_each(startRow, endRow, [&](std::array<int, LIGHTS_SIZE> &row) {
-		std::for_each(row.begin() + _start.getX(), row.begin() + _end.getX() + 1, f);
-	});
-
-}
-
-int CLights::getLit() {
-	auto suma = [](int sum, std::array<int, LIGHTS_SIZE> b) {
-		return sum + std::accumulate(b.begin(), b.end(), 0);
+	using namespace std::string_view_literals;
+	constexpr std::array commands{
+		std::pair{"turn on "sv, ECommand::turnOn},
+		std::pair{"turn off "sv, ECommand::turnOff},
+		std::pair{"toggle "sv, ECommand::toggle}
 	};
-	return std::accumulate(matrix.begin(), matrix.end(), 0, suma);
-}
 
-
-void CSolution::command(const std::string &_command, const bool _part2) {
-	CCommandParser command(_command);
-	if (_part2) {
-		lights.execute2(command.getCommand());
-	} else {
-		lights.execute(command.getCommand());
+	ECommand consumeCommand(std::string_view &text) {
+		for (const auto &[t, c] : commands) {
+			if (text.starts_with(t)) {
+				text.remove_prefix(t.size());
+				return c;
+			}
+		}
+		return ECommand::unknown;
 	}
-}
+} //namespace
 
-int CSolution::getTurnedLights() {
-	return lights.getLit();
+	Command getCommand(std::string_view text) {
+		const auto com = consumeCommand(text);
+		const auto start = getPointFrom(text.substr(0, text.find(" ")));
+		const auto end = getPointFrom(text.substr(text.find_last_of(" ") + 1));
+		return {com, start, end};
+	}
+
+
+	void CLights::execute(const Command &_command) {
+		switch (_command.command) {
+		case ECommand::turnOn:
+			doIt(_command.start, _command.end, [rule = rule](auto &p) {
+				p = rule == ERule::partOne ? 1 : p + 1;});
+			break;
+		case ECommand::turnOff:
+			doIt(_command.start, _command.end, [rule = rule](auto &p) {
+				p = rule == ERule::partOne ?   0 : std::max (0, p - 1);});
+			break;
+		case ECommand::toggle:
+			doIt(_command.start, _command.end, [rule = rule](auto &p) {
+				p = rule == ERule::partOne ? !p : p + 2;});
+			break;
+		case ECommand::unknown:
+		ddefault:
+			break;
+		};
+
+	}
+	void CLights::doIt(const Point &_start,const Point &_end, std::function<void(int &)> f) {
+		auto const startRow = matrix.begin() + _start.y;
+		auto const endRow = matrix.begin() + _end.y + 1;
+
+		std::for_each(startRow, endRow, [&](std::array<int, size> &row) {
+			std::for_each(row.begin() + _start.x, row.begin() + _end.x + 1, f);
+		});
+	}
+
+	int CLights::getLit() {
+		auto suma = [](int sum, const auto &b) {
+			return sum + std::accumulate(b.begin(), b.end(), 0);
+		};
+		return std::accumulate(matrix.begin(), matrix.end(), 0, suma);
+	}
+
+	void CSolution::command(std::string_view _command) {
+		lights.execute(getCommand(_command));
+	}
+
+	int CSolution::getTurnedLights() {
+		return lights.getLit();
+	}
 }

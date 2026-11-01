@@ -5,6 +5,7 @@
 
 #include "CSolution.h"
 
+using namespace aoc2015::day6;
 std::vector<std::string> readInput(const char *aPath) {
 	std::fstream file(aPath);
 	std::vector<std::string> input;
@@ -17,19 +18,19 @@ std::vector<std::string> readInput(const char *aPath) {
 }
 
 int main(int argc, char **argv) {
-	if (argc < 1) {
+	if (argc < 2) {
 		std::cerr << "Input path to file!" << std::endl;
 		return -1;
 	}
 	auto input = readInput(argv[1]);
-	CSolution solution;
-	CSolution solution2;
-	for (const auto line : input) {
-		solution.command(line);
-		solution2.command(line, true);
+	CSolution light(ERule::partOne);
+	CSolution brightness(ERule::partTwo);
+	for (const auto &line : input) {
+		light.command(line);
+		brightness.command(line);
 	}
-	std::cout << solution.getTurnedLights() << std::endl;
-	std::cout << solution2.getTurnedLights() << std::endl;
+	std::cout << light.getTurnedLights() << std::endl;
+	std::cout << brightness.getTurnedLights() << std::endl;
 
 
 	return 0;
